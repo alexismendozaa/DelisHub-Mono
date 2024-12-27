@@ -1,0 +1,88 @@
+/* General */
+.login-page {
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  /* Form Container */
+  .form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .form-container h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  /* Input Styles */
+  .form-container .form-label {
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .form-container .form-control {
+    border-radius: 0.5rem;
+    border: 1px solid #ced4da;
+    padding: 0.75rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .form-container .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  /* Button Styles */
+  .form-container .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .form-container .btn-primary:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Alert Styles */
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Footer */
+  .form-container p {
+    margin-top: 1rem;
+    color: #555;
+    font-size: 0.875rem;
+  }
+  
+  .form-container p a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .form-container p a:hover {
+    text-decoration: underline;
+  }
+  

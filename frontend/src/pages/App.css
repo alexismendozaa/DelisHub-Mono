@@ -1,0 +1,44 @@
+
+/* Normalización de elementos principales */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa; /* Fondo claro para consistencia */
+  font-family: Arial, sans-serif;
+}
+
+/* Dashboard específico */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Encabezado */
+header {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer */
+footer {
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Notificaciones */
+.notifications-container {
+  max-width: 300px;
+  overflow-y: auto;
+}
+
+/* Estilo para listas */
+.list-group-item {
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f0f0f0;
+}

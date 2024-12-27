@@ -1,0 +1,33 @@
+/* Reset de estilos básicos */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  line-height: 1.6;
+  background-color: #fff; /* Fondo base */
+  color: #333; /* Texto principal */
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #0056b3;
+}
+
+/* Estilo global para imágenes y contenedores */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
