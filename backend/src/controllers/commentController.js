@@ -101,4 +101,25 @@ const deleteComment = async (req, res) => {
     }
 };
 
-module.exports = { createComment, getCommentsByRecipe, updateComment, deleteComment };
+const canModifyComment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Obtener el comentario por ID
+        const comment = await Comment.findByPk(id);
+
+        if (!comment) {
+            return res.status(404).json({ error: 'Comment not found' });
+        }
+
+        // Verificar si el usuario autenticado es el creador del comentario
+        const isCreator = comment.userId === req.user.id;
+
+        res.json({ canModify: isCreator });
+    } catch (error) {
+        console.error('Error verifying permissions for comment:', error);
+        res.status(500).json({ error: 'An error occurred while verifying permissions' });
+    }
+};
+
+module.exports = { createComment, getCommentsByRecipe, updateComment, deleteComment, canModifyComment };

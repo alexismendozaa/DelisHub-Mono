@@ -8,9 +8,9 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) {
-      setUser(storedUser);
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && !user) {
+      setUser(JSON.parse(storedUser));
     }
   }, []);
 

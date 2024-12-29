@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { createRecipe, getRecipes, getRecipeById, updateRecipe, deleteRecipe } = require('../controllers/recipeController');
+const {createRecipe,getRecipes,getRecipeById,updateRecipe,deleteRecipe,canModifyRecipe,} = require('../controllers/recipeController');
+const authMiddleware = require('../middleware/authMiddleware'); // Asegúrate de tener este middleware
 
 // Crear una nueva receta
-router.post('/', createRecipe);
+router.post('/', authMiddleware, createRecipe);
 
 // Obtener todas las recetas
 router.get('/', getRecipes);
@@ -11,10 +12,12 @@ router.get('/', getRecipes);
 // Obtener una receta por ID
 router.get('/:id', getRecipeById);
 
-// Actualizar una receta por ID
-router.put('/:id', updateRecipe);
+// Actualizar una receta
+router.put('/:id', authMiddleware, updateRecipe);
 
-// Eliminar una receta por ID
-router.delete('/:id', deleteRecipe);
+// Eliminar una receta
+router.delete('/:id', authMiddleware, deleteRecipe);
+
+router.get('/:id/can-modify', authMiddleware, canModifyRecipe);
 
 module.exports = router;

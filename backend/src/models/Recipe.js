@@ -1,11 +1,12 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const User = require('./User'); // Importar para definir la relación
 
 const Recipe = sequelize.define('Recipe', {
     id: {
-        type: DataTypes.UUID, // Define el tipo como UUID
-        defaultValue: DataTypes.UUIDV4, // Genera automáticamente un UUID
-        primaryKey: true, // Configura como clave primaria
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
     },
     title: {
         type: DataTypes.STRING,
@@ -16,15 +17,28 @@ const Recipe = sequelize.define('Recipe', {
         allowNull: true,
     },
     ingredients: {
-        type: DataTypes.JSON, // Mantén JSON si coincide con la base de datos
+        type: DataTypes.JSON,
         allowNull: false,
     },
     steps: {
-        type: DataTypes.JSON, // Mantén JSON si coincide con la base de datos
+        type: DataTypes.JSON,
         allowNull: false,
     },
+    userId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: 'Users',
+            key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+    },
 }, {
-    timestamps: true, // Para incluir createdAt y updatedAt automáticamente
+    timestamps: true,
 });
+
+// Relación: Una receta pertenece a un usuario
+Recipe.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 module.exports = Recipe;

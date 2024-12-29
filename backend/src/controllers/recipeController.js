@@ -1,38 +1,38 @@
 const Recipe = require('../models/Recipe');
+const User = require('../models/User');
 
 // Crear una nueva receta
 const createRecipe = async (req, res) => {
     try {
         const { title, description, ingredients, steps } = req.body;
 
-        // Validar campos requeridos
         if (!title || !ingredients || !steps) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Validar formato de JSON
-        if (!Array.isArray(ingredients) || !Array.isArray(steps)) {
-            return res.status(400).json({ error: 'Ingredients and steps must be arrays' });
-        }
+        const recipe = await Recipe.create({
+            title,
+            description,
+            ingredients,
+            steps,
+            userId: req.user.id,
+        });
 
-        // Crear la receta
-        const newRecipe = await Recipe.create({ title, description, ingredients, steps });
-        res.status(201).json(newRecipe);
+        res.status(201).json(recipe);
     } catch (error) {
-        console.error('Error creating recipe:', error);
-        res.status(500).json({ error: 'Error creating recipe', details: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while creating the recipe' });
     }
 };
-
-
 
 // Obtener todas las recetas
 const getRecipes = async (req, res) => {
     try {
         const recipes = await Recipe.findAll();
-        res.status(200).json(recipes);
+        res.json(recipes);
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching recipes', details: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while fetching recipes' });
     }
 };
 
@@ -40,45 +40,97 @@ const getRecipes = async (req, res) => {
 const getRecipeById = async (req, res) => {
     try {
         const { id } = req.params;
-        const recipe = await Recipe.findByPk(id);
+        const recipe = await Recipe.findByPk(id, {
+            include: [{ model: User, as: 'user', attributes: ['id', 'username', 'email'] }],
+        });
+
         if (!recipe) {
             return res.status(404).json({ error: 'Recipe not found' });
         }
-        res.status(200).json(recipe);
+
+        res.json(recipe);
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching recipe', details: error.message });
+        console.error('Error fetching recipe by ID:', error);
+        res.status(500).json({ error: 'An error occurred while fetching the recipe' });
     }
 };
 
-// Actualizar una receta por ID
+// Actualizar una receta
 const updateRecipe = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, description, ingredients, steps } = req.body;
+        const userId = req.user.id;
+
         const recipe = await Recipe.findByPk(id);
+
         if (!recipe) {
             return res.status(404).json({ error: 'Recipe not found' });
         }
+
+        if (recipe.userId !== userId) {
+            return res.status(403).json({ error: 'You do not have permission to edit this recipe' });
+        }
+
         await recipe.update({ title, description, ingredients, steps });
-        res.status(200).json(recipe);
+        res.json(recipe);
     } catch (error) {
-        res.status(500).json({ error: 'Error updating recipe', details: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while updating the recipe' });
     }
 };
 
-// Eliminar una receta por ID
+// Eliminar una receta
 const deleteRecipe = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.id;
+
         const recipe = await Recipe.findByPk(id);
+
         if (!recipe) {
             return res.status(404).json({ error: 'Recipe not found' });
         }
+
+        if (recipe.userId !== userId) {
+            return res.status(403).json({ error: 'You do not have permission to delete this recipe' });
+        }
+
         await recipe.destroy();
-        res.status(200).json({ message: 'Recipe deleted successfully' });
+        res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: 'Error deleting recipe', details: error.message });
+        console.error(error);
+        res.status(500).json({ error: 'An error occurred while deleting the recipe' });
     }
 };
 
-module.exports = { createRecipe, getRecipes, getRecipeById, updateRecipe, deleteRecipe };
+const canModifyRecipe = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Obtener la receta por ID
+        const recipe = await Recipe.findByPk(id);
+
+        if (!recipe) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        // Verificar si el usuario autenticado es el creador de la receta
+        const isCreator = recipe.userId === req.user.id;
+
+        res.json({ canModify: isCreator });
+    } catch (error) {
+        console.error('Error verifying permissions:', error);
+        res.status(500).json({ error: 'An error occurred while verifying permissions' });
+    }
+};
+
+
+module.exports = {
+    createRecipe,
+    getRecipes,
+    getRecipeById,
+    updateRecipe,
+    deleteRecipe,
+    canModifyRecipe,
+};

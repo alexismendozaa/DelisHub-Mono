@@ -1,32 +1,27 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-const authMiddleware = (req, res, next) => {
-  try {
-      const authHeader = req.headers.authorization;
-      console.log('Encabezado Authorization:', authHeader); // Depuración
+const authMiddleware = async (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
 
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          console.log('Encabezado de autorización faltante o incorrecto:', authHeader);
-          return res.status(401).json({ error: 'Access denied. Invalid token format.' });
-      }
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
 
-      const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findByPk(decoded.id);
 
-      console.log('Token decodificado en middleware:', decoded);
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
 
-      if (!decoded.id) {
-          return res.status(401).json({ error: 'Invalid token: missing user ID.' });
-      }
-
-      req.user = decoded; // Configurar el usuario
-      next();
-  } catch (error) {
-      console.error('Error al verificar el token:', error.message);
-      const statusCode = error.name === 'TokenExpiredError' ? 401 : 403;
-      res.status(statusCode).json({ error: 'Invalid or expired token.' });
-  }
+        req.user = user; // Asignar el usuario al objeto `req`
+        next();
+    } catch (error) {
+        console.error('Error in authMiddleware:', error);
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 };
-
 
 module.exports = authMiddleware;

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createComment, getCommentsByRecipe, updateComment, deleteComment } = require('../controllers/commentController');
+const { createComment, getCommentsByRecipe, updateComment, deleteComment, canModifyComment } = require('../controllers/commentController');
 const authMiddleware = require('../middleware/authMiddleware'); // Importar el middleware
 
 // Crear un nuevo comentario
@@ -37,5 +37,7 @@ router.delete('/:id', authMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+
+router.get('/:id/can-modify', authMiddleware, canModifyComment);
 
 module.exports = router;
