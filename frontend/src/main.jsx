@@ -16,3 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </Router>
   </React.StrictMode>
 );
+
+
+ReactDOM.render(
+  <AuthProvider>
+      <App />
+  </AuthProvider>,
+  document.getElementById('root')
+);
