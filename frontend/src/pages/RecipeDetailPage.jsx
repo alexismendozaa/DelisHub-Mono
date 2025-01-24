@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import apiClient from '../api/axios';
 import AuthContext from '../context/AuthContext';
 
 const RecipeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext); // Usuario autenticado
+  const { user } = useContext(AuthContext);
   const [recipe, setRecipe] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -14,25 +16,33 @@ const RecipeDetailPage = () => {
   const [editingComment, setEditingComment] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [canModify, setCanModify] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const checkCommentPermissions = async (commentId) => {
     try {
-      const response = await apiClient.get(`/comments/${commentId}/can-modify`);
+      const response = await apiClient.get(`/comments/${commentId}/can-modify`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       return response.data.canModify;
     } catch (error) {
-      console.error('Error checking comment permissions:', error);
+      console.error('Error verificando permisos de comentario:', error);
       return false;
     }
   };
 
   useEffect(() => {
-    const fetchRecipe = async () => {
+    const fetchRecipeAndComments = async () => {
       try {
-        const response = await apiClient.get(`/recipes/${id}`);
-        setRecipe(response.data);
+        const recipeResponse = await apiClient.get(`/recipes/${id}`);
+        setRecipe(recipeResponse.data);
 
-        // Verificar si el usuario puede modificar la receta
-        const canModifyResponse = await apiClient.get(`/recipes/${id}/can-modify`);
+        const canModifyResponse = await apiClient.get(`/recipes/${id}/can-modify`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         setCanModify(canModifyResponse.data.canModify);
 
         const commentsResponse = await apiClient.get(`/comments/${id}`);
@@ -42,51 +52,39 @@ const RecipeDetailPage = () => {
             return { ...comment, canModify };
           })
         );
+
         setComments(commentsWithPermissions);
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching recipe details or permissions:', error);
+        console.error('Error al cargar los detalles:', error);
         setMessage('Error al cargar los detalles de la receta.');
         setComments([]);
+        setLoading(false);
       }
     };
 
-    fetchRecipe();
-  }, [id]);
-
-  const handleEditRecipe = () => {
-    navigate(`/recipes/${recipe.id}/edit`); // Redirige al formulario de edición
-  };
-
-  const handleDeleteRecipe = async () => {
-    try {
-      await apiClient.delete(`/recipes/${recipe.id}`);
-      navigate('/recipes'); // Redirige a la lista de recetas tras eliminar
-    } catch (error) {
-      console.error('Error al eliminar la receta:', error);
-      setMessage('Error al eliminar la receta.');
-    }
-  };
+    fetchRecipeAndComments();
+  }, [id, user.token]);
 
   const handleAddComment = async () => {
     if (!newComment) {
       setMessage('El comentario no puede estar vacío.');
       return;
     }
-  
+
     try {
-      // Crear el nuevo comentario
       const response = await apiClient.post('/comments', {
         recipeId: id,
         content: newComment,
+      }, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
       });
-  
+
       const newCommentData = response.data.comment;
-  
-      // Verificar si el usuario puede modificar este comentario
       const canModify = await checkCommentPermissions(newCommentData.id);
-  
-      // Agregar el comentario al estado con el atributo canModify
-      setComments([...comments, { ...newCommentData, canModify }]);
+      setComments([{ ...newCommentData, canModify }, ...comments]);
       setNewComment('');
       setMessage('Comentario agregado exitosamente.');
     } catch (error) {
@@ -95,14 +93,49 @@ const RecipeDetailPage = () => {
     }
   };
 
-  const handleEditComment = (comment) => {
-    setEditingComment(comment.id);
-    setEditContent(comment.content);
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await apiClient.delete(`/comments/${commentId}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      setComments(comments.filter((comment) => comment.id !== commentId));
+      setMessage('Comentario eliminado exitosamente.');
+    } catch (error) {
+      console.error('Error al eliminar el comentario:', error);
+      setMessage('No se pudo eliminar el comentario.');
+    }
+  };
+
+  const handleEditRecipe = () => {
+    navigate(`/recipes/${id}/edit`);
+  };
+
+  const handleDeleteRecipe = async () => {
+    const isConfirmed = window.confirm("¿Estás seguro de que deseas eliminar esta receta? Esta acción no se puede deshacer.");
+    if (!isConfirmed) return; // Si el usuario cancela, no se realiza ninguna acción
+    try {
+      await apiClient.delete(`/recipes/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      setMessage('Receta eliminada exitosamente.');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error al eliminar la receta:', error);
+      setMessage('No se pudo eliminar la receta.');
+    }
   };
 
   const handleSaveEdit = async () => {
     try {
-      await apiClient.put(`/comments/${editingComment}`, { content: editContent });
+      await apiClient.put(`/comments/${editingComment}`, { content: editContent }, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setComments(
         comments.map((comment) =>
           comment.id === editingComment ? { ...comment, content: editContent } : comment
@@ -116,121 +149,139 @@ const RecipeDetailPage = () => {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
-    try {
-      await apiClient.delete(`/comments/${commentId}`);
-      setComments(comments.filter((comment) => comment.id !== commentId));
-      setMessage('Comentario eliminado exitosamente.');
-    } catch (error) {
-      console.error('Error al eliminar el comentario:', error);
-      setMessage('Error al eliminar el comentario.');
-    }
-  };
+  if (loading) {
+    return <p className="text-center">Cargando receta y comentarios...</p>;
+  }
 
-  if (!recipe) return <p className="text-center">Cargando receta...</p>;
+  if (!recipe) {
+    return <p className="text-center">Receta no encontrada.</p>;
+  }
 
   return (
     <div className="container py-5">
-      <div className="row">
-        <div className="col-lg-8 mx-auto">
-          <h1 className="mb-3 text-center">{recipe.title}</h1>
-          <p className="lead text-center text-muted">{recipe.description}</p>
+      <div className="row justify-content-center">
+        <div className="col-lg-10">
+          <div className="card shadow-lg p-4">
+            <h1 className="mb-3 text-center text-primary">{recipe.title}</h1>
+            <p className="lead text-center text-muted">{recipe.description}</p>
 
-          {recipe.user ? (
-            <p className="text-center">
-              <strong>Publicado por:</strong> {recipe.user.username} ({recipe.user.email})
-            </p>
-          ) : (
-            <p className="text-center text-muted">Usuario no disponible</p>
-          )}
+            {recipe.user ? (
+              <p className="text-center text-muted">
+                <strong>Publicado por:</strong> {recipe.user.username} ({recipe.user.email})
+              </p>
+            ) : (
+              <p className="text-center text-muted">Usuario no disponible</p>
+            )}
 
-          <section className="mt-5">
-            <h3 className="h4 text-muted">Ingredientes</h3>
-            <ul className="list-group list-group-flush">
-              {recipe.ingredients.map((ingredient, index) => (
-                <li key={index} className="list-group-item border-0">
-                  {ingredient}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="mt-5">
-            <h3 className="h4 text-muted">Pasos</h3>
-            <ol className="list-group list-group-numbered">
-              {recipe.steps.map((step, index) => (
-                <li key={index} className="list-group-item border-0">
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </section>
-
-          <div className="d-flex justify-content-center mt-4">
-            <button
-              className="btn btn-outline-primary me-2"
-              onClick={() => navigate('/dashboard')}
-            >
-              Regresar al Dashboard
-            </button>
-            <button
-              className="btn btn-outline-secondary"
-              onClick={() => navigate('/recipes')}
-            >
-              Ver Todas las Recetas
-            </button>
-          </div>
-
-          {canModify && (
             <div className="d-flex justify-content-center mt-4">
-              <button className="btn btn-warning me-2" onClick={handleEditRecipe}>
-                Editar Receta
+              <button
+                className="btn btn-secondary me-2"
+                onClick={() => navigate(-1)}
+              >
+                Atrás
               </button>
-              <button className="btn btn-danger" onClick={handleDeleteRecipe}>
-                Eliminar Receta
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate('/dashboard')}
+              >
+                Dashboard
               </button>
             </div>
-          )}
 
-          {/* Mensaje de error o éxito */}
-          {message && <div className="alert alert-info">{message}</div>}
+            {canModify && (
+              <div className="d-flex justify-content-center mt-4">
+                <button className="btn btn-warning me-2" onClick={handleEditRecipe}>
+                  Editar Receta
+                </button>
+                <button className="btn btn-danger" onClick={handleDeleteRecipe}>
+                  Eliminar Receta
+                </button>
+              </div>
+            )}
 
-          <section className="mt-5">
-            <h3 className="h4 text-muted">Comentarios</h3>
-            <ul className="list-group mb-4">
-              {Array.isArray(comments) &&
-                comments.map((comment) => (
+            <section className="mt-5">
+              <h3 className="h4 text-muted mb-3">Ingredientes</h3>
+              <ul className="list-group list-group-flush">
+                {recipe.ingredients && recipe.ingredients.map((ingredient, index) => (
+                  <li
+                    key={index}
+                    className="list-group-item border-0 py-2 px-4 mb-2 rounded-sm"
+                    style={{ backgroundColor: '#f7f7f7', fontWeight: 300 }}
+                  >
+                    {ingredient}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="mt-5">
+              <h3 className="h4 text-muted mb-3">Pasos</h3>
+              <ol className="list-group list-group-numbered">
+                {recipe.steps && recipe.steps.map((step, index) => (
+                  <li
+                    key={index}
+                    className="list-group-item border-0 py-2 px-4 mb-2 rounded-sm"
+                    style={{ backgroundColor: '#f7f7f7', fontWeight: 300 }}
+                  >
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            <section className="mt-5">
+              <h3 className="h4 text-muted mb-3">Comentarios</h3>
+              {message && <div className="alert alert-info">{message}</div>}
+              <ul className="list-group mb-4">
+                {comments.map((comment) => (
                   <li
                     key={comment.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
+                    className="list-group-item d-flex justify-content-between align-items-center py-3 px-4 mb-2 rounded-sm"
+                    style={{ backgroundColor: '#f7f7f7' }}
                   >
-                    {editingComment === comment.id ? (
-                      <div className="w-100">
-                        <textarea
-                          className="form-control mb-2"
-                          value={editContent}
-                          onChange={(e) => setEditContent(e.target.value)}
-                        />
-                        <div className="d-flex justify-content-end">
-                          <button className="btn btn-sm btn-success me-2" onClick={handleSaveEdit}>
-                            Guardar
-                          </button>
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() => setEditingComment(null)}
-                          >
-                            Cancelar
-                          </button>
-                        </div>
+                    <div className="w-100">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="text-muted">
+                          <strong>
+                            {comment.User?.username || 'Usuario desconocido'}
+                            {comment.User?.email ? ` (${comment.User.email})` : ''}
+                          </strong>{' '}
+                          -{' '}
+                          {formatDistanceToNow(new Date(comment.createdAt), {
+                            addSuffix: true,
+                            locale: es,
+                          })}
+                        </span>
                       </div>
-                    ) : (
-                      <>
-                        <span>{comment.content}</span>
-                        {comment.canModify && (
-                          <div className="d-flex">
+                      <p className="mb-1">{comment.content}</p>
+                    </div>
+                    {comment.canModify && (
+                      <div className="d-flex">
+                        {editingComment === comment.id ? (
+                          <>
+                            <input
+                              className="form-control form-control-sm me-2"
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                            />
+                            <button className="btn btn-sm btn-success me-2" onClick={handleSaveEdit}>
+                              Guardar
+                            </button>
+                            <button
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => setEditingComment(null)}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
                             <button
                               className="btn btn-sm btn-warning me-2"
-                              onClick={() => handleEditComment(comment)}
+                              onClick={() => {
+                                setEditingComment(comment.id);
+                                setEditContent(comment.content);
+                              }}
                             >
                               Editar
                             </button>
@@ -240,26 +291,26 @@ const RecipeDetailPage = () => {
                             >
                               Eliminar
                             </button>
-                          </div>
+                          </>
                         )}
-                      </>
+                      </div>
                     )}
                   </li>
                 ))}
-            </ul>
-
-            <div className="input-group mb-4">
-              <textarea
-                className="form-control"
-                placeholder="Escribe un comentario..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              />
-              <button className="btn btn-primary" onClick={handleAddComment}>
-                Agregar Comentario
-              </button>
-            </div>
-          </section>
+              </ul>
+              <div className="input-group mb-4">
+                <textarea
+                  className="form-control"
+                  placeholder="Escribe un comentario..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                />
+                <button className="btn btn-primary" onClick={handleAddComment}>
+                  Agregar Comentario
+                </button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>

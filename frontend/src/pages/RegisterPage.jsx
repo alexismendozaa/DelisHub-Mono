@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/axios';
-import Button from '../components/Button'; // Reutilizamos el botón creado
+import Button from '../components/Button';
 
 function RegisterPage() {
   const [username, setName] = useState('');
@@ -14,15 +14,20 @@ function RegisterPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       const response = await apiClient.post('/auth/register', { username, email, password });
-
-      // Redirigir al login después de un registro exitoso
-      navigate('/login');
-    } catch (err) {
-      setError('Hubo un error al registrarte. Por favor, inténtalo de nuevo.');
+      alert('Registro exitoso');
+      console.log('Usuario registrado:', response.data);
+      navigate('/login'); // Redirige al usuario a la página de inicio de sesión
+    } catch (error) {
+      console.error('Error recibido:', error);
+      if (error.response && error.response.data) {
+        const { error: errorMsg, details } = error.response.data;
+        setError(`${errorMsg}: ${details}`);
+      } else {
+        setError('Hubo un error durante el registro. Intenta nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -70,7 +75,9 @@ function RegisterPage() {
               required
             />
           </div>
-          <Button label={loading ? 'Cargando...' : 'Registrarse'} variant="success" disabled={loading} />
+          <div className="d-flex justify-content-center">
+            <Button label={loading ? 'Cargando...' : 'Registrarse'} variant="success" disabled={loading} />
+          </div>
         </form>
         <div className="text-center mt-3">
           <p>¿Ya tienes una cuenta? <a href="/login">Inicia sesión aquí</a></p>

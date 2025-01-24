@@ -9,6 +9,8 @@ const recipeRoutes = require('./routes/recipe');
 const commentRoutes = require('./routes/comment');
 const { syncDatabase } = require('./models');
 const errorHandler = require('./middleware/errorHandler');
+const userProfileRoutes = require('./routes/userProfileRoutes');
+
 
 // Swagger
 const swaggerJsDoc = require('swagger-jsdoc');
@@ -53,6 +55,7 @@ app.get('/', (req, res) => res.send('DelisHub API')); // Actualizado para reflej
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api', userProfileRoutes);
 
 // Middleware de manejo de errores
 app.use(errorHandler);

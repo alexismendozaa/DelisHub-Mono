@@ -13,4 +13,8 @@ const syncDatabase = async () => {
   }
 };
 
-module.exports = { User, Recipe, Comment, syncDatabase };
+// Relacionar los modelos
+User.associate({ Recipe });
+Recipe.associate({ User });
+
+module.exports = { sequelize, User, Recipe, Comment, syncDatabase };

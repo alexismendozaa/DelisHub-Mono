@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./User'); // Importar para definir la relación
 
+// Define el modelo Recipe
 const Recipe = sequelize.define('Recipe', {
     id: {
         type: DataTypes.UUID,
@@ -35,10 +35,12 @@ const Recipe = sequelize.define('Recipe', {
         onDelete: 'CASCADE',
     },
 }, {
-    timestamps: true,
+    timestamps: true, // Agrega los campos de timestamp (createdAt, updatedAt)
 });
 
 // Relación: Una receta pertenece a un usuario
-Recipe.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Recipe.associate = (models) => {
+    Recipe.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+};
 
 module.exports = Recipe;

@@ -6,8 +6,9 @@ import App from './App';
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-
-ReactDOM.createRoot(document.getElementById('root')).render(
+// Crear el root y renderizar la aplicación
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <React.StrictMode>
     <Router>
       <AuthProvider>
@@ -15,12 +16,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       </AuthProvider>
     </Router>
   </React.StrictMode>
-);
-
-
-ReactDOM.render(
-  <AuthProvider>
-      <App />
-  </AuthProvider>,
-  document.getElementById('root')
 );

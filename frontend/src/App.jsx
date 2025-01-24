@@ -8,6 +8,7 @@ import RecipeListPage from './pages/RecipeListPage';
 import RecipeCreatePage from './pages/RecipeCreatePage';
 import RecipeEditPage from './pages/RecipeEditPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
+import UserProfilePage from './pages/UserProfilePage'; 
 
 const App = () => {
   return (
@@ -60,6 +61,8 @@ const App = () => {
 
       {/* Ruta por defecto */}
       <Route path="*" element={<LoginPage />} />
+
+      <Route path="/user-profile/:userId" element={<UserProfilePage />} />
     </Routes>
   );
 };

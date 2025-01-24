@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
+// Define el modelo User
 const User = sequelize.define('User', {
     id: {
         type: DataTypes.UUID,
@@ -24,6 +25,15 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    avatar: {
+        type: DataTypes.STRING,
+        allowNull: true, // Permitido ser null inicialmente
+    },
 });
+
+// Relación con el modelo Recipe
+User.associate = (models) => {
+    User.hasMany(models.Recipe, { foreignKey: 'userId', as: 'recipes' });
+};
 
 module.exports = User;

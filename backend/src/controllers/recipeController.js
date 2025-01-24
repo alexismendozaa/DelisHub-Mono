@@ -6,16 +6,18 @@ const createRecipe = async (req, res) => {
     try {
         const { title, description, ingredients, steps } = req.body;
 
+        // Validación de campos requeridos
         if (!title || !ingredients || !steps) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Crear la receta
         const recipe = await Recipe.create({
             title,
             description,
             ingredients,
             steps,
-            userId: req.user.id,
+            userId: req.user.id, // Asocia la receta con el usuario autenticado
         });
 
         res.status(201).json(recipe);
@@ -41,7 +43,7 @@ const getRecipeById = async (req, res) => {
     try {
         const { id } = req.params;
         const recipe = await Recipe.findByPk(id, {
-            include: [{ model: User, as: 'user', attributes: ['id', 'username', 'email'] }],
+            include: [{ model: User, as: 'user', attributes: ['id', 'username', 'email'] }], // Incluye datos del creador
         });
 
         if (!recipe) {
@@ -54,6 +56,40 @@ const getRecipeById = async (req, res) => {
         res.status(500).json({ error: 'An error occurred while fetching the recipe' });
     }
 };
+
+
+// Obtener recetas por usuario
+const getRecipesByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const recipes = await Recipe.findAll({
+            where: { userId },
+            include: [
+                {
+                    model: User,
+                    as: 'user',
+                    attributes: ['id', 'username', 'email'], // Traer los datos del usuario creador
+                },
+                {
+                    model: Comment,
+                    include: [
+                        {
+                            model: User,
+                            attributes: ['id', 'username'], // Traer los datos del autor de los comentarios
+                        },
+                    ],
+                },
+            ],
+        });
+
+        res.json(recipes);
+    } catch (error) {
+        console.error('Error al obtener recetas del usuario:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error });
+    }
+};
+
 
 // Actualizar una receta
 const updateRecipe = async (req, res) => {
@@ -72,6 +108,7 @@ const updateRecipe = async (req, res) => {
             return res.status(403).json({ error: 'You do not have permission to edit this recipe' });
         }
 
+        // Actualizar la receta
         await recipe.update({ title, description, ingredients, steps });
         res.json(recipe);
     } catch (error) {
@@ -96,6 +133,7 @@ const deleteRecipe = async (req, res) => {
             return res.status(403).json({ error: 'You do not have permission to delete this recipe' });
         }
 
+        // Eliminar la receta
         await recipe.destroy();
         res.status(204).send();
     } catch (error) {
@@ -104,6 +142,7 @@ const deleteRecipe = async (req, res) => {
     }
 };
 
+// Verificar si un usuario puede modificar una receta
 const canModifyRecipe = async (req, res) => {
     try {
         const { id } = req.params;
@@ -125,11 +164,12 @@ const canModifyRecipe = async (req, res) => {
     }
 };
 
-
+// Exportar las funciones de los controladores
 module.exports = {
     createRecipe,
     getRecipes,
     getRecipeById,
+    getRecipesByUser,
     updateRecipe,
     deleteRecipe,
     canModifyRecipe,
