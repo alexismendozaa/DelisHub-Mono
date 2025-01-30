@@ -10,6 +10,7 @@ const commentRoutes = require('./routes/comment');
 const { syncDatabase } = require('./models');
 const errorHandler = require('./middleware/errorHandler');
 const userProfileRoutes = require('./routes/userProfileRoutes');
+const userConfigRoutes = require('./routes/userConfigRoutes');
 
 
 // Swagger
@@ -56,6 +57,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api', userProfileRoutes);
+app.use('/api', userConfigRoutes);
+
 
 // Middleware de manejo de errores
 app.use(errorHandler);

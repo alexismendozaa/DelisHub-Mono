@@ -24,7 +24,7 @@ const createComment = async (req, res) => {
         res.status(201).json({ message: 'Comment created successfully', comment: newComment });
     } catch (error) {
         console.error('Error creating comment:', error);
-        res.status(500).json({ error: 'Error creating comment', details: error.message });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 };
 
@@ -45,7 +45,7 @@ const getCommentsByRecipe = async (req, res) => {
         res.status(200).json({ count: comments.length, comments });
     } catch (error) {
         console.error('Error fetching comments:', error);
-        res.status(500).json({ error: 'Error fetching comments', details: error.message });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 };
 
@@ -58,7 +58,7 @@ const updateComment = async (req, res) => {
 
         // Validación de contenido
         if (!content) {
-            return res.status(400).json({ error: 'Content is required to update a comment.' });
+            return res.status(400).json({ error: 'Content is required' });
         }
 
         // Buscar el comentario
@@ -69,20 +69,21 @@ const updateComment = async (req, res) => {
 
         // Verificar si el usuario autenticado es el autor del comentario
         if (comment.userId !== userId) {
-            return res.status(403).json({ error: 'You do not have permission to edit this comment.' });
+            return res.status(403).json({ error: 'You are not authorized to edit this comment' });
         }
 
         // Actualizar el contenido del comentario
         comment.content = content;
         await comment.save();
+
         res.status(200).json({ message: 'Comment updated successfully', comment });
     } catch (error) {
         console.error('Error updating comment:', error);
-        res.status(500).json({ error: 'Error updating comment', details: error.message });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 };
 
-// Eliminar un comentario por ID
+// Eliminar un comentario
 const deleteComment = async (req, res) => {
     try {
         const { id } = req.params;
@@ -96,15 +97,16 @@ const deleteComment = async (req, res) => {
 
         // Verificar si el usuario autenticado es el autor del comentario
         if (comment.userId !== userId) {
-            return res.status(403).json({ error: 'You do not have permission to delete this comment.' });
+            return res.status(403).json({ error: 'You are not authorized to delete this comment' });
         }
 
         // Eliminar el comentario
         await comment.destroy();
+
         res.status(200).json({ message: 'Comment deleted successfully' });
     } catch (error) {
         console.error('Error deleting comment:', error);
-        res.status(500).json({ error: 'Error deleting comment', details: error.message });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 };
 
@@ -123,20 +125,17 @@ const canModifyComment = async (req, res) => {
         // Verificar si el usuario autenticado es el creador del comentario
         const isCreator = comment.userId === req.user.id;
 
-        console.log('User can modify:', isCreator); // Verifica el valor de `isCreator`
-
         res.json({ canModify: isCreator });
     } catch (error) {
         console.error('Error verifying permissions for comment:', error);
-        res.status(500).json({ error: 'An error occurred while verifying permissions' });
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 };
 
-
-module.exports = { 
-    createComment, 
-    getCommentsByRecipe, 
-    updateComment, 
-    deleteComment, 
-    canModifyComment 
+module.exports = {
+    createComment,
+    getCommentsByRecipe,
+    updateComment,
+    deleteComment,
+    canModifyComment,
 };

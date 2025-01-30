@@ -9,6 +9,9 @@ import RecipeCreatePage from './pages/RecipeCreatePage';
 import RecipeEditPage from './pages/RecipeEditPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import UserProfilePage from './pages/UserProfilePage'; 
+import UserSettings from './pages/UserSettings';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
 
 const App = () => {
   return (
@@ -55,6 +58,14 @@ const App = () => {
         element={
           <PrivateRoute>
             <RecipeEditPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <UserSettings />
           </PrivateRoute>
         }
       />

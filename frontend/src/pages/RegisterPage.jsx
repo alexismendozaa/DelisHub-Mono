@@ -7,6 +7,7 @@ function RegisterPage() {
   const [username, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Nuevo estado para confirmar contraseña
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -14,6 +15,12 @@ function RegisterPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await apiClient.post('/auth/register', { username, email, password });
@@ -72,6 +79,18 @@ function RegisterPage() {
               placeholder="Crea una contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="confirmPassword" className="form-label">Confirmar Contraseña</label>
+            <input
+              type="password"
+              className="form-control"
+              id="confirmPassword"
+              placeholder="Confirma tu contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
           </div>
