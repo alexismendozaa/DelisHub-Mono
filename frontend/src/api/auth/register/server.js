@@ -11,7 +11,7 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', // Origen permitido
+  origin: process.env.CLIENT_ORIGIN || 'http://3.221.112.57', // Origen permitido
 }));
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
