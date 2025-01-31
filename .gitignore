@@ -1,21 +1,37 @@
 # Node.js dependencies
 node_modules/
-npm-debug.log*
+npm-debug.log
+yarn-error.log
 
-# Environment variables
+# Environment files
 .env
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
 
 # Logs
 logs/
 *.log
-debug.log
+*.log.*
 
-# Docker
-docker-compose.override.yml
-.env.*
+# Temporary files
+*.tmp
+*.temp
 
-# System files
+# OS generated files
 .DS_Store
 Thumbs.db
+
+# IDEs and editors
 .idea/
 .vscode/
+*.swp
+
+# Build and production files
+dist/
+build/
+
+# AWS CLI
+.aws/
