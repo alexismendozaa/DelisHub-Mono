@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/loginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import RecipeListPage from './pages/RecipeListPage';
