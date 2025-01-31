@@ -76,7 +76,7 @@ const UserSettings = () => {
     try {
       setLoading(true);
 
-      let endpoint = '/user-profile/update-profile';
+      let endpoint = '/user-config/update-profile';
       let body = {
         userId: user?.user?.id,
         username: formData.username,
@@ -89,14 +89,14 @@ const UserSettings = () => {
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         };
-        endpoint = '/user-profile/update-password';
+        endpoint = '/user-config/update-password';
       } else if (editingField === 'email') {
         body = {
           userId: user?.user?.id,
           email: formData.email,
           password: formData.currentPassword,
         };
-        endpoint = '/user-profile/update-email';
+        endpoint = '/user-config/update-email';
       }
 
       const response = await apiClient.put(endpoint, body);
@@ -134,7 +134,7 @@ const UserSettings = () => {
 
     try {
       setLoading(true);
-      await apiClient.delete(`/user-profile/delete-account/${user.user.id}`);
+      await apiClient.delete(`/user-config/delete-account/${user.user.id}`);
 
       // Cerrar sesión después de eliminar la cuenta
       localStorage.removeItem('user');
