@@ -1,25 +1,27 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://3.221.112.57/api';
+
 const apiClient = axios.create({
-baseURL: 'http://3.221.112.57:3000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // Interceptor para agregar el token
-apiClient.interceptors.request.use((config) => {
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (user?.token) {
+apiClient.interceptors.request.use(
+  (config) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user?.token) {
       config.headers.Authorization = `Bearer ${user.token}`; // Añade el token al encabezado
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
-
-
-
+);
 
 // Interceptor para manejar expiración del token
 apiClient.interceptors.response.use(
@@ -34,3 +36,4 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
