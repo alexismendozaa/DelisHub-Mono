@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
+// Definir las rutas
 router.put('/user-profile/update-profile', authMiddleware, updateProfile);
 router.put('/user-profile/update-password', authMiddleware, updatePassword);
 router.delete('/user-profile/delete', authMiddleware, deleteUserAccount);
