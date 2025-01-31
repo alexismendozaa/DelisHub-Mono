@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  ECR_BACKEND: 677956781092.dkr.ecr.us-east-1.amazonaws.com/delishub-backend
+  ECR_FRONTEND: 677956781092.dkr.ecr.us-east-1.amazonaws.com/delishub-frontend
+  REGION: us-east-1
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Step 2: Login to Amazon ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+      with:
+        region: us-east-1
+
+    # Step 3: Build Docker images
+    - name: Build Backend Docker Image
+      run: |
+        docker build -t $ECR_BACKEND:$IMAGE_TAG ./DelisHub/backend
+
+    - name: Build Frontend Docker Image
+      run: |
+        docker build -t $ECR_FRONTEND:$IMAGE_TAG ./DelisHub/frontend
+
+    # Step 4: Push Docker images to ECR
+    - name: Push Backend Docker Image to Amazon ECR
+      run: |
+        docker push $ECR_BACKEND:$IMAGE_TAG
+
+    - name: Push Frontend Docker Image to Amazon ECR
+      run: |
+        docker push $ECR_FRONTEND:$IMAGE_TAG
+
+    # Step 5: (Optional) Add deployment to ECS or EC2
+    - name: Deploy Placeholder
+      run: |
+        echo "Implement deployment logic here"
