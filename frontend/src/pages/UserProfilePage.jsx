@@ -28,7 +28,8 @@ const UserProfilePage = () => {
       if (!user || !user.user || !user.user.id) return;
 
       try {
-        const response = await apiClient.get(`/user-profile/${user.user.id}`);
+const API_URL = process.env.REACT_APP_API_URL || "http://3.221.112.57/api";
+const response = await apiClient.get(`${API_URL}/user-profile/${user.user.id}`);
         setRecipes(response.data);
 
         const initialComments = {};
